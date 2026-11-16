@@ -1,13 +1,10 @@
-[tools]
-lua = "5.1"
-
 [env]
 _.path = ["lua_modules/bin"]
 
 [tasks]
 test = "luarocks test --local"
 test-focus = "luarocks test --local -- --filter focus"
-format = "stylua lua/ spec/ integration-tests/"
+format = "stylua lua/ spec/"
 
 [tasks.check]
 description = "Check the code for errors (lint + test + format)"
