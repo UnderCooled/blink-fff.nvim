@@ -1,2 +1,6 @@
 doc/tags
 reference
+.nvim/
+.luarocks
+lua_modules
+luarocks
