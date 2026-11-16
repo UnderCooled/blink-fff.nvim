@@ -6,4 +6,3 @@ lua_modules
 luarocks
 lua.bat
 luarocks.bat
-*.rockspec
