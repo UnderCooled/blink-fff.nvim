@@ -1,9 +1,11 @@
 [env]
 _.path = ["lua_modules/bin"]
+LUA_PATH = "lua_modules/share/lua/5.1/?.lua;lua_modules/share/lua/5.1/?/init.lua;;"
+LUA_CPATH = "lua_modules/lib/lua/5.1/?.dll;;"
 
 [tasks]
-test = "luarocks test --local"
-test-focus = "luarocks test --local -- --filter focus"
+test = "busted spec/"
+test-focus = "busted spec/ --filter focus"
 format = "stylua lua/ spec/"
 
 [tasks.check]
@@ -31,6 +33,15 @@ if rg "#focus" --glob "*.lua" ./spec/; then
   exit 1; \
 fi
 """
+run_windows = '''
+selene lua spec
+if errorlevel 1 exit /b 1
+rg "#focus" --glob "*.lua" spec
+if errorlevel 2 exit /b 1
+if errorlevel 1 exit /b 0
+echo Error: #focus tags found in the codebase.
+exit /b 1
+'''
 
 [vars]
 COLOR_RESET = '\033[0m'

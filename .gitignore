@@ -6,3 +6,5 @@ lua_modules
 luarocks
 lua.bat
 luarocks.bat
+.omp
+.rumdl_cache

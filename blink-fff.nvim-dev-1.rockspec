@@ -1,3 +1,4 @@
+rockspec_format = "3.0"
 package = "blink-fff.nvim"
 version = "dev-1"
 source = {
