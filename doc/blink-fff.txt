@@ -14,7 +14,9 @@ CONTENTS                                                     *blink-fff*
 
 blink-fff is a blink.cmp completion source. It searches the fff.nvim index
 for the keyword under the cursor and turns matching source ranges into
-complete identifiers. No external search process is started.
+complete identifiers. The same source also completes project file paths
+after a trigger character ('@' by default). No external search process is
+started.
 
 The documentation window shows the match location, surrounding source lines,
 syntax highlighting, and highlights of the matched token.
@@ -42,6 +44,12 @@ prefix_min_len (integer, 3)
 
 get_prefix (function, nil)
   Return the keyword for a context. Defaults to |context:get_keyword()|.
+
+file_trigger_char (string, "@")
+  Character that starts file path completion. The inserted path is relative
+  to |getcwd()| (walking up with '..' for files above it) and uses the
+  separator typed after the trigger; with none it follows 'completeslash',
+  then 'shellslash', then the platform default.
 
 mode ("plain" | "regex" | "fuzzy", "plain")
   fff search mode.
@@ -95,6 +103,8 @@ whether fff was initialized, and the search budget.
   debounces and discards stale results, but a running search blocks.
 - An unfinished fff scan returns partial or empty results.
 - The index root is fff's base path. This plugin never changes it.
+- File completion inserts paths relative to fff's base path, not to the
+  current buffer's directory.
 - No git grep or ripgrep backend, commands, or additional-path support.
 
 vim:tw=78:ts=8:noet:ft=help:norl:

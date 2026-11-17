@@ -33,6 +33,24 @@ local function search_options(options)
   }
 end
 
+--- fff's index root; file results are relative to it.
+---@return string|nil
+local function index_base_path()
+  local ok_conf, conf = pcall(require, "fff.conf")
+  if not ok_conf or type(conf) ~= "table" or type(conf.get) ~= "function" then
+    return nil
+  end
+  local ok_get, value = pcall(conf.get)
+  if
+    not ok_get
+    or type(value) ~= "table"
+    or type(value.base_path) ~= "string"
+  then
+    return nil
+  end
+  return value.base_path
+end
+
 --- Search through fff. Never raises into the completion callback.
 ---@param prefix string
 ---@param options blink-fff.Options
@@ -47,14 +65,7 @@ function M.default_search(prefix, options)
     return nil
   end
 
-  local base_path
-  local ok_conf, conf = pcall(require, "fff.conf")
-  if ok_conf and type(conf) == "table" and type(conf.get) == "function" then
-    local ok_get, value = pcall(conf.get)
-    if ok_get and type(value) == "table" then
-      base_path = value.base_path
-    end
-  end
+  local base_path = index_base_path()
 
   local ok_search, result =
     pcall(fff.content_search, prefix, search_options(options))
@@ -64,6 +75,28 @@ function M.default_search(prefix, options)
   end
 
   return { items = result.items or {}, base_path = base_path }
+end
+
+--- Search project files through fff. Never raises into the completion callback.
+---@param query string
+---@param options blink-fff.Options
+---@return table|nil result { items: table[], base_path?: string }
+function M.default_file_search(query, options)
+  local ok, fff = pcall(require, "fff")
+  if not ok or type(fff) ~= "table" or type(fff.file_search) ~= "function" then
+    return nil
+  end
+
+  local ok_search, result = pcall(fff.file_search, query, {
+    mode = "files",
+    max_results = options.page_size,
+  })
+  if not ok_search or type(result) ~= "table" then
+    debug.log(options, "file search failed: " .. tostring(result))
+    return nil
+  end
+
+  return { items = result.items or {}, base_path = index_base_path() }
 end
 
 --- Start the fff index without performing a search.

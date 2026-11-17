@@ -15,11 +15,13 @@ local M = {}
 ---@field customize_icon_highlight? boolean Add the fff icon metadata to items (default true)
 ---@field debug? boolean Log search diagnostics to :messages (default false)
 ---@field enabled? boolean Enable the source (default true)
+---@field file_trigger_char? string Character that starts file path completion (default '@')
 
 ---@type blink-fff.Options
 M.defaults = {
   prefix_min_len = 3,
   get_prefix = nil,
+  file_trigger_char = "@",
   mode = "plain",
   page_size = 100,
   max_matches_per_file = 20,
@@ -89,6 +91,16 @@ local function validate(opts)
   end
   if opts.get_prefix ~= nil and type(opts.get_prefix) ~= "function" then
     fail("get_prefix", "a function", opts.get_prefix)
+  end
+
+  if
+    type(opts.file_trigger_char) ~= "string" or #opts.file_trigger_char ~= 1
+  then
+    fail(
+      "file_trigger_char",
+      "a single-character string",
+      opts.file_trigger_char
+    )
   end
 end
 

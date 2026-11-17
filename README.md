@@ -46,6 +46,7 @@ No setup call is required. Options are passed as the provider `opts` table.
 | --- | --- | --- | --- |
 | `prefix_min_len` | integer >= 1 | `3` | Minimum typed keyword length before searching |
 | `get_prefix` | function | `nil` | Override the keyword; defaults to `context:get_keyword()` |
+| `file_trigger_char` | string (1 char) | `"@"` | Character that starts project file path completion |
 | `mode` | `plain` \| `regex` \| `fuzzy` | `plain` | fff search mode |
 | `page_size` | integer >= 1 | `100` | Maximum matches returned by fff |
 | `max_matches_per_file` | integer >= 0 | `20` | Per-file match cap |
@@ -64,6 +65,12 @@ No setup call is required. Options are passed as the provider `opts` table.
 - The typed keyword comes from blink's keyword range. A match range from fff
   is expanded to the surrounding identifier using byte offsets, then
   deduplicated by inserted text. The first location is kept for documentation.
+- Typing the file trigger (`@` by default) switches the source to
+  `fff.file_search`: project files are completed by fuzzy path. The inserted
+  path is relative to `getcwd()`; the separator is the one typed after the
+  trigger, else `completeslash`, then `shellslash`, then the platform default.
+  `/` and `\` are trigger characters, so a typed path stays in the completion
+  context.
 - The source keeps up to 16 recent (buffer, prefix) results in an LRU cache.
   Backspacing reuses an earlier result; a new prefix searches again.
 - Searches are synchronous because fff's Lua API has no cancellation. The
@@ -207,3 +214,5 @@ and `.gitignore` / `.ignore` / git excludes are honoured on both sides.
 - No git grep or ripgrep backend, and no external search fallback.
 - Completion results do not show `path:line`; the documentation window does.
 - No multi-root or additional-path support; configure fff itself.
+- File completion inserts paths relative to `getcwd()`, walking up with `..`
+  for files above it. Only a path on another drive keeps its absolute path.

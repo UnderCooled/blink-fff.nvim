@@ -57,6 +57,31 @@ local function complete(keyword, bufnr)
   return state
 end
 
+local function file_ctx(query, bufnr)
+  local line = "see @" .. query
+  return {
+    bufnr = bufnr or 1,
+    line = line,
+    pos = { row = 0, col = #line },
+    get_keyword = function()
+      return ""
+    end,
+  }
+end
+
+local function complete_file(query, bufnr)
+  local state = { called = false, response = nil, error = nil }
+  local ok, cancel = pcall(source.get_completions, source, file_ctx(query, bufnr), function(response)
+    state.called = true
+    state.response = response
+  end)
+  if not ok then state.error = cancel end
+  vim.wait(2000, function()
+    return state.called or state.error ~= nil
+  end, 10)
+  return state
+end
+
 if with_fff then
   local first = complete("funct")
   check(first.error == nil, "first completion does not error")
@@ -80,6 +105,46 @@ if with_fff then
 
   local short = complete("fu")
   check(short.called and short.response == nil, "short prefix yields nil response")
+
+  local bare = complete_file("")
+  check(bare.error == nil, "bare file trigger does not error")
+  check(
+    bare.response ~= nil and #bare.response.items > 0,
+    "bare file trigger lists files"
+  )
+
+  local forward = complete_file("lua/")
+  check(forward.called and forward.response ~= nil, "file query calls back")
+  check(
+    forward.response ~= nil and #forward.response.items > 0,
+    "file query returns items"
+  )
+  local file_item = forward.response and forward.response.items[1]
+  check(
+    file_item ~= nil and file_item.kind == 17 and file_item.source_id == "blink-fff",
+    "file item is a blink-fff File item"
+  )
+
+  local file_result =
+    require("blink-fff.searcher").default_file_search("lua/", source.config)
+  check(
+    file_result ~= nil
+      and file_result.base_path == require("fff.conf").get().base_path,
+    "file search reports the fff index root"
+  )
+  check(
+    file_item ~= nil and file_item.label:find("\\", 1, true) == nil,
+    "file label follows the typed '/' separator"
+  )
+
+  if vim.fn.has("win32") == 1 then
+    local backward = complete_file("lua\\")
+    local win_item = backward.response and backward.response.items[1]
+    check(
+      win_item ~= nil and win_item.label:find("\\", 1, true) ~= nil,
+      "file label follows the typed '\\' separator"
+    )
+  end
 
   local doc_buf = vim.api.nvim_create_buf(false, true)
   local window = {

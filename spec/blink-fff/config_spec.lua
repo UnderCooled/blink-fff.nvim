@@ -10,6 +10,7 @@ describe("blink-fff.config", function()
     assert.equals(20, opts.max_matches_per_file)
     assert.equals(80, opts.time_budget_ms)
     assert.equals(true, opts.enforce_time_budget)
+    assert.equals("@", opts.file_trigger_char)
     assert.equals("smart", opts.casing)
     assert.equals(30, opts.debounce_ms)
     assert.equals(4, opts.context_size)
@@ -69,6 +70,25 @@ describe("blink-fff.config", function()
     end)
     assert.has_error(function()
       config.new({ time_budget_ms = -1 })
+    end)
+  end)
+
+  it("accepts a custom file trigger character", function()
+    assert.equals(
+      "#",
+      config.new({ file_trigger_char = "#" }).file_trigger_char
+    )
+  end)
+
+  it("rejects a non-single-character file trigger", function()
+    assert.has_error(function()
+      config.new({ file_trigger_char = "@@" })
+    end)
+    assert.has_error(function()
+      config.new({ file_trigger_char = "" })
+    end)
+    assert.has_error(function()
+      config.new({ file_trigger_char = 1 })
     end)
   end)
 

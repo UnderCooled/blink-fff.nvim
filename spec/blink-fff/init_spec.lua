@@ -14,16 +14,20 @@ describe("blink-fff source", function()
     package.loaded["blink-fff"] = saved_source
   end)
 
-  local function install_searcher(request)
+  local function install_searcher(request, file_request)
+    local instances = 0
     searcher_module = {
       new = function()
+        instances = instances + 1
+        local handler = (instances == 2 and file_request) or request
         return {
           request = function(_, prefix, bufnr, callback)
-            return request(prefix, bufnr, callback)
+            return handler(prefix, bufnr, callback)
           end,
         }
       end,
       prewarm = function() end,
+      default_file_search = function() end,
     }
     package.loaded["blink-fff.searcher"] = searcher_module
   end
@@ -153,6 +157,86 @@ describe("blink-fff source", function()
       bufnr = 1,
       get_keyword = function()
         error("no keyword")
+      end,
+    }, function(value)
+      response = value
+    end)
+
+    assert.is_nil(response)
+  end)
+
+  it(
+    "offers the file trigger and path separators as trigger characters",
+    function()
+      install_searcher(function() end)
+      local Source = require("blink-fff")
+
+      local chars = Source.new({}, {}):get_trigger_characters()
+      assert.same({ "@", "/", "\\" }, chars)
+
+      local custom = Source.new({ file_trigger_char = "#" }, {})
+      assert.equals("#", custom:get_trigger_characters()[1])
+    end
+  )
+
+  it("routes a triggered path to the file searcher", function()
+    local captured
+    install_searcher(function()
+      error("content searcher must not be called")
+    end, function(prefix, bufnr, callback)
+      captured = { prefix = prefix, bufnr = bufnr, callback = callback }
+      return "file-cancel"
+    end)
+
+    local Source = require("blink-fff")
+    local source = Source.new({}, {})
+    local line = "see @lua\\bl"
+
+    local response
+    local cancel = source:get_completions({
+      bufnr = 4,
+      line = line,
+      pos = { row = 0, col = #line },
+      get_keyword = function()
+        return "bl"
+      end,
+    }, function(value)
+      response = value
+    end)
+
+    assert.equals("file-cancel", cancel)
+    assert.equals("lua/bl", captured.prefix)
+    assert.equals(4, captured.bufnr)
+
+    captured.callback({
+      items = { { relative_path = "lua/blink-fff/init.lua" } },
+    })
+
+    assert.equals(1, #response.items)
+    assert.equals("lua\\blink-fff\\init.lua", response.items[1].label)
+    assert.equals("blink-fff", response.items[1].source_id)
+    assert.is_true(response.is_incomplete_forward)
+    assert.is_true(response.is_incomplete_backward)
+  end)
+
+  it("reports a failed file search as nil", function()
+    install_searcher(function()
+      error("content searcher must not be called")
+    end, function(_, _, callback)
+      callback(nil)
+    end)
+
+    local Source = require("blink-fff")
+    local source = Source.new({}, {})
+    local line = "@lua"
+
+    local response = "unset"
+    source:get_completions({
+      bufnr = 1,
+      line = line,
+      pos = { row = 0, col = #line },
+      get_keyword = function()
+        return "lua"
       end,
     }, function(value)
       response = value
