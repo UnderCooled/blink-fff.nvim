@@ -1,0 +1,83 @@
+local config = require("blink-fff.config")
+
+describe("blink-fff.config", function()
+  it("returns documented defaults", function()
+    local opts = config.new()
+
+    assert.equals(3, opts.prefix_min_len)
+    assert.equals("plain", opts.mode)
+    assert.equals(100, opts.page_size)
+    assert.equals(20, opts.max_matches_per_file)
+    assert.equals(80, opts.time_budget_ms)
+    assert.equals(true, opts.enforce_time_budget)
+    assert.equals("smart", opts.casing)
+    assert.equals(30, opts.debounce_ms)
+    assert.equals(4, opts.context_size)
+    assert.equals(true, opts.fallback_to_regex_highlighting)
+    assert.equals(true, opts.customize_icon_highlight)
+    assert.equals(false, opts.debug)
+    assert.equals(true, opts.enabled)
+    assert.is_nil(opts.get_prefix)
+  end)
+
+  it("merges user options over defaults", function()
+    local opts =
+      config.new({ prefix_min_len = 5, mode = "regex", debug = true })
+
+    assert.equals(5, opts.prefix_min_len)
+    assert.equals("regex", opts.mode)
+    assert.equals(true, opts.debug)
+    assert.equals(100, opts.page_size)
+  end)
+
+  it("does not mutate the defaults table", function()
+    config.new({ prefix_min_len = 9 })
+
+    assert.equals(3, config.new().prefix_min_len)
+  end)
+
+  it("accepts a get_prefix override", function()
+    local get_prefix = function()
+      return "x"
+    end
+    local opts = config.new({ get_prefix = get_prefix })
+
+    assert.equals(get_prefix, opts.get_prefix)
+  end)
+
+  it("rejects an unknown mode", function()
+    assert.has_error(function()
+      config.new({ mode = "glob" })
+    end)
+  end)
+
+  it("rejects an unknown casing", function()
+    assert.has_error(function()
+      config.new({ casing = "lower" })
+    end)
+  end)
+
+  it("rejects invalid numeric options", function()
+    assert.has_error(function()
+      config.new({ prefix_min_len = 0 })
+    end)
+    assert.has_error(function()
+      config.new({ debounce_ms = -1 })
+    end)
+    assert.has_error(function()
+      config.new({ context_size = 1.5 })
+    end)
+    assert.has_error(function()
+      config.new({ time_budget_ms = -1 })
+    end)
+  end)
+
+  it("rejects non-boolean flags and non-function get_prefix", function()
+    assert.has_error(function()
+      config.new({ debug = "yes" })
+    end)
+    assert.has_error(function()
+      config.new({ get_prefix = "nope" })
+    end)
+  end)
+end)
