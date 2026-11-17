@@ -70,7 +70,8 @@ No setup call is required. Options are passed as the provider `opts` table.
   path is relative to `getcwd()`; the separator is the one typed after the
   trigger, else `completeslash`, then `shellslash`, then the platform default.
   `/` and `\` are trigger characters, so a typed path stays in the completion
-  context.
+  context. Accepting an item replaces the trigger and the typed query with the
+  path.
 - The source keeps up to 16 recent (buffer, prefix) results in an LRU cache.
   Backspacing reuses an earlier result; a new prefix searches again.
 - Searches are synchronous because fff's Lua API has no cancellation. The

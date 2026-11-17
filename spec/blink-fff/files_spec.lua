@@ -84,6 +84,27 @@ describe("blink-fff.files", function()
     end)
   end)
 
+  describe("range", function()
+    it("starts at the trigger and ends at the cursor", function()
+      local line = "see @lua/bl"
+      assert.same({
+        start = { line = 3, character = 4 },
+        ["end"] = { line = 3, character = #line },
+      }, files.range(line, 3, #line, "@"))
+    end)
+
+    it("covers only the last trigger", function()
+      local line = "@a @b"
+      assert.equals(3, files.range(line, 0, #line, "@").start.character)
+    end)
+
+    it("is nil without a trigger, cursor or trigger character", function()
+      assert.is_nil(files.range("plain", 0, 5, "@"))
+      assert.is_nil(files.range("@x", 0, nil, "@"))
+      assert.is_nil(files.range("@x", 0, 2, ""))
+    end)
+  end)
+
   describe("search_query", function()
     it("normalizes typed backslashes for fff", function()
       assert.equals("lua/bl", files.search_query("lua\\bl"))
@@ -156,7 +177,9 @@ describe("blink-fff.files", function()
     end
 
     it("uses the query separator for label and insert text", function()
-      local built = files.build(result(), "lua\\bl", config.new())
+      local line = "see @lua\\bl"
+      local range = files.range(line, 0, #line, "@")
+      local built = files.build(result(), "lua\\bl", config.new(), range)
 
       assert.equals(2, #built)
       assert.equals("lua\\blink-fff\\init.lua", built[1].label)
@@ -164,7 +187,8 @@ describe("blink-fff.files", function()
       assert.equals("lua/blink-fff/init.lua", built[1].filterText)
       assert.equals("blink-fff", built[1].source_id)
       assert.equals(17, built[1].kind)
-      assert.is_nil(built[1].textEdit)
+      assert.same(range, built[1].textEdit.range)
+      assert.equals(built[1].insertText, built[1].textEdit.newText)
     end)
 
     it("uses 'shellslash' when the query has no separator", function()

@@ -84,6 +84,13 @@ function Source:get_completions(context, callback)
   )
 
   if file_query ~= nil then
+    local file_range = files.range(
+      context.line,
+      context.pos and context.pos.row,
+      context.pos and context.pos.col,
+      self.config.file_trigger_char
+    )
+
     return self.file_searcher:request(
       files.search_query(file_query),
       context.bufnr or 0,
@@ -94,7 +101,7 @@ function Source:get_completions(context, callback)
         end
 
         callback({
-          items = files.build(result, file_query, self.config),
+          items = files.build(result, file_query, self.config, file_range),
           is_incomplete_forward = true,
           is_incomplete_backward = true,
         })

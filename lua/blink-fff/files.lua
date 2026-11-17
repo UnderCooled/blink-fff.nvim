@@ -89,6 +89,26 @@ function M.convert(path, sep)
   return (path:gsub("\\", "/"))
 end
 
+--- 1-based byte index of the last trigger before the cursor.
+---@param line string
+---@param cursor_col integer 0-based byte column
+---@param trigger string
+---@return integer|nil
+local function trigger_index(line, cursor_col, trigger)
+  local before = line:sub(1, cursor_col)
+  local pos
+  local from = 1
+  while true do
+    local found = before:find(trigger, from, true)
+    if not found then
+      break
+    end
+    pos = found
+    from = found + #trigger
+  end
+  return pos
+end
+
 --- Text typed after the last trigger character before the cursor.
 ---
 --- Returns nil when the trigger is absent or the typed token already contains
@@ -105,27 +125,44 @@ function M.query(line, cursor_col, trigger)
     return nil
   end
 
-  local before = line:sub(1, cursor_col)
-  local pos
-  local from = 1
-  while true do
-    local found = before:find(trigger, from, true)
-    if not found then
-      break
-    end
-    pos = found
-    from = found + #trigger
-  end
-
+  local pos = trigger_index(line, cursor_col, trigger)
   if not pos then
     return nil
   end
 
-  local text = before:sub(pos + #trigger)
+  local text = line:sub(pos + #trigger, cursor_col)
   if text:find("%s") then
     return nil
   end
   return text
+end
+
+--- Blink range that replaces the trigger and the typed query on accept.
+---@param line string|nil
+---@param cursor_row integer|nil 0-based row of the cursor
+---@param cursor_col integer|nil 0-based byte column of the cursor
+---@param trigger string
+---@return lsp.Range|nil
+function M.range(line, cursor_row, cursor_col, trigger)
+  if
+    type(line) ~= "string"
+    or type(cursor_col) ~= "number"
+    or type(trigger) ~= "string"
+    or trigger == ""
+  then
+    return nil
+  end
+
+  local pos = trigger_index(line, cursor_col, trigger)
+  if not pos then
+    return nil
+  end
+
+  local row = type(cursor_row) == "number" and cursor_row or 0
+  return {
+    start = { line = row, character = pos - 1 },
+    ["end"] = { line = row, character = cursor_col },
+  }
 end
 
 --- Resolve an fff index path against the editor working directory.
@@ -166,8 +203,9 @@ end
 ---@param result table|nil { items: table[], base_path?: string }
 ---@param query string Text typed after the trigger
 ---@param options blink-fff.Options
+---@param range lsp.Range|nil Replaced on accept; covers the trigger
 ---@return blink.cmp.CompletionItem[]
-function M.build(result, query, options)
+function M.build(result, query, options, range)
   if type(result) ~= "table" or type(result.items) ~= "table" then
     return {}
   end
@@ -189,6 +227,7 @@ function M.build(result, query, options)
         label = text,
         filterText = M.convert(relative, "/"),
         insertText = text,
+        textEdit = range and { newText = text, range = range } or nil,
         source_id = "blink-fff",
         kind = KIND_FILE,
       }

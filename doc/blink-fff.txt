@@ -49,7 +49,8 @@ file_trigger_char (string, "@")
   Character that starts file path completion. The inserted path is relative
   to |getcwd()| (walking up with '..' for files above it) and uses the
   separator typed after the trigger; with none it follows 'completeslash',
-  then 'shellslash', then the platform default.
+  then 'shellslash', then the platform default. Accepting an item replaces
+  the trigger and the typed query with the path.
 
 mode ("plain" | "regex" | "fuzzy", "plain")
   fff search mode.

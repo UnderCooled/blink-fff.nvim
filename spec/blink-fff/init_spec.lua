@@ -215,6 +215,12 @@ describe("blink-fff source", function()
     assert.equals(1, #response.items)
     assert.equals("lua\\blink-fff\\init.lua", response.items[1].label)
     assert.equals("blink-fff", response.items[1].source_id)
+    assert.equals(4, response.items[1].textEdit.range.start.character)
+    assert.equals(#line, response.items[1].textEdit.range["end"].character)
+    assert.equals(
+      response.items[1].insertText,
+      response.items[1].textEdit.newText
+    )
     assert.is_true(response.is_incomplete_forward)
     assert.is_true(response.is_incomplete_backward)
   end)

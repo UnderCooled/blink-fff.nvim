@@ -124,6 +124,13 @@ if with_fff then
     file_item ~= nil and file_item.kind == 17 and file_item.source_id == "blink-fff",
     "file item is a blink-fff File item"
   )
+  check(
+    file_item ~= nil
+      and file_item.textEdit ~= nil
+      and file_item.textEdit.range.start.character == 4
+      and file_item.textEdit.range["end"].character == #"see @lua/",
+    "file item replaces the trigger on accept"
+  )
 
   local file_result =
     require("blink-fff.searcher").default_file_search("lua/", source.config)
