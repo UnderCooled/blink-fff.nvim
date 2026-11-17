@@ -1,0 +1,100 @@
+*blink-fff.txt*  Project identifier completion through fff.nvim
+
+==============================================================================
+CONTENTS                                                     *blink-fff*
+
+1. Introduction ........................................ |blink-fff-intro|
+2. Setup ............................................... |blink-fff-setup|
+3. Options ............................................. |blink-fff-options|
+4. Health .............................................. |blink-fff-health|
+5. Limitations ......................................... |blink-fff-limits|
+
+==============================================================================
+1. INTRODUCTION                                         *blink-fff-intro*
+
+blink-fff is a blink.cmp completion source. It searches the fff.nvim index
+for the keyword under the cursor and turns matching source ranges into
+complete identifiers. No external search process is started.
+
+The documentation window shows the match location, surrounding source lines,
+syntax highlighting, and highlights of the matched token.
+
+==============================================================================
+2. SETUP                                                *blink-fff-setup>
+
+Requirements: Neovim 0.10+, blink.cmp, fff.nvim with its compiled library.
+
+Register the provider with blink.cmp: >lua
+  sources = {
+    default = { 'lsp', 'path', 'buffer', 'fff' },
+    providers = {
+      fff = { module = 'blink-fff', name = 'FFF', opts = {} },
+    },
+  }
+<
+No setup call is needed. Options go in the provider's "opts" table.
+
+==============================================================================
+3. OPTIONS                                            *blink-fff-options*
+
+prefix_min_len (integer, 3)
+  Minimum keyword length before searching.
+
+get_prefix (function, nil)
+  Return the keyword for a context. Defaults to |context:get_keyword()|.
+
+mode ("plain" | "regex" | "fuzzy", "plain")
+  fff search mode.
+
+page_size (integer, 100)
+  Maximum matches requested from fff.
+
+max_matches_per_file (integer, 20)
+  Per-file match cap.
+
+time_budget_ms (integer, 80)
+  fff search budget. 0 disables the budget.
+
+enforce_time_budget (boolean, true)
+  Apply the time budget even when no match has been found.
+
+casing ("smart" | "sensitive" | "insensitive", "smart")
+  Search casing.
+
+debounce_ms (integer, 30)
+  Delay before starting a search.
+
+context_size (integer, 4)
+  Documentation lines before and after the match.
+
+fallback_to_regex_highlighting (boolean, true)
+  Use Vim syntax when fff cannot load a tree-sitter parser.
+
+customize_icon_highlight (boolean, true)
+  Add the FFF kind icon and highlight metadata.
+
+debug (boolean, false)
+  Report searches and stale results in |:messages|.
+
+enabled (boolean, true)
+  Enable or disable the source.
+
+==============================================================================
+4. HEALTH                                              *blink-fff-health*
+
+Run: >vim
+  :checkhealth blink-fff
+<
+Reports blink.cmp availability, fff.nvim availability, fff's base path,
+whether fff was initialized, and the search budget.
+
+==============================================================================
+5. LIMITATIONS                                         *blink-fff-limits*
+
+- fff's Lua search is synchronous and cannot be cancelled. The source
+  debounces and discards stale results, but a running search blocks.
+- An unfinished fff scan returns partial or empty results.
+- The index root is fff's base path. This plugin never changes it.
+- No git grep or ripgrep backend, commands, or additional-path support.
+
+vim:tw=78:ts=8:noet:ft=help:norl:
