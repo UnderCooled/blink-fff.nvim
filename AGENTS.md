@@ -90,4 +90,6 @@ doc/blink-fff.txt               vimdoc (generated or written at the end)
 
 ## Current status
 
-Scaffolding only: no `lua/` or `spec/` code yet. See `PLAN.md` for the implementation plan.
+Implemented: source, fff searcher, token expansion, item mapping, documentation
+window, health check, debug logging, specs, headless smoke and bench scripts.
+See `PLAN.md` for the phase results and measured numbers.

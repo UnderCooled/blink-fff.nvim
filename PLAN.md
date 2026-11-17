@@ -1,6 +1,6 @@
 # PLAN
 
-状态：**未实施**。本文完成于参考方案调研之后，先定契约与验证方式，再写代码。
+状态：**已实施**（2026-11-17）。契约与验证方式先行；实现与实测结果见各阶段。
 
 ## 1. 调研结论
 
@@ -181,7 +181,7 @@ sources = {
 - [x] `mise.toml` 在 `[env]` 注入 `lua_modules/bin`、`LUA_PATH`、`LUA_CPATH`；
       `test` / `test-focus` 改为 `busted spec/`。
 - [x] `mise run lint` 增加 `run_windows` 分支：原 POSIX `if ...; then` 在 cmd.exe 下不可用。
-- [ ] 建立 `lua/blink-fff/` 空目录与 `spec/blink-fff/` 第一个 spec，确保 `mise run test` 稳定通过。
+- [x] 建立 `lua/blink-fff/` 与 `spec/blink-fff/`，首个 spec 为 `config_spec.lua`。
 - 验收：`mise run test` 输出 `N success / 0 failures`；`mise run lint` 通过。
 
 ### Phase 1 — API spike（先证伪，再写插件）
@@ -197,6 +197,13 @@ sources = {
 
 验收：脚本输出一张表：mode / query / matches / elapsed_ms / first_item 字段快照；结论写入本文“风险”节。
 若 `plain` 的 p95 超过 60 ms，Phase 6 的收窄优化提前为必做项。
+
+实测结果（2026-11-17，nvim 0.12.6，fff 已装）：
+
+- plain 1.0–1.3 ms，regex 7.85 ms，fuzzy 1.31 ms（单次，80 ms 预算）。
+- `match_ranges` 与 `line_content` 按字节对齐；中文与 emoji 切片完整。
+- `relative_path` 与 `base_path` 拼接后可读；regex 支持 `blink[\w_-]+`。
+- 结论：默认保留 `plain`；收窄优化不需要。
 
 ### Phase 2 — 纯函数核心（TDD）
 
@@ -259,6 +266,17 @@ sources = {
 
 验收：记录实测数字；用户在实际 Neovim 中确认可用。
 
+实测 p95（每前缀 30 次，`time_budget_ms = 80`）：本项目 1.04 ms，
+`reference/fff` 2.04 ms，`reference/blink.cmp` 1.37 ms。全部低于 60 ms
+目标，不启用前缀收窄优化。
+
+后续优化（2026-11-17）：
+
+- source 缓存改为 16 项 LRU，退格可复用早先前缀；fff 参数不变。
+- 前缀收窄实测不完整（`blink` -> `blinkf` 丢失 1 个候选），不采用。
+- 文档窗口对 > 64 KiB 文件使用 `byte_offset` + `readblob` 只读窗口；
+  24 MB 文件实测读取 p50 195 ms -> 0.18 ms，p95 208 ms -> 0.33 ms。
+
 ## 6. 测试矩阵
 
 | 层级 | 工具 | 覆盖 |
@@ -297,7 +315,7 @@ sources = {
 
 - [ ] 用户按 README 配置后，在真实 Neovim 中能补全项目标识符。
 - [ ] 文档窗口有上下文、语法高亮和匹配标记。
-- [ ] `mise run test`、`mise run lint`、`mise run format` 通过。
-- [ ] fff 缺失或未扫描完时不报错、不卡 UI。
-- [ ] 性能数字已记录，未达标的项有明确后续或已调整默认值。
-- [ ] 没有 Cypress、浏览器测试或一次性调试脚本残留。
+- [x] `mise run test`、`mise run lint`、`mise run format` 通过。
+- [x] fff 缺失或未扫描完时不报错、不卡 UI（headless smoke 覆盖缺失分支）。
+- [x] 性能数字已记录，未达标的项有明确后续或已调整默认值。
+- [x] 没有 Cypress、浏览器测试或一次性调试脚本残留；只保留 smoke 与 bench。
