@@ -46,12 +46,12 @@ No setup call is required. Options are passed as the provider `opts` table.
 | --- | --- | --- | --- |
 | `prefix_min_len` | integer >= 1 | `3` | Minimum typed keyword length before searching |
 | `get_prefix` | function | `nil` | Override the keyword; defaults to `context:get_keyword()` |
-| `mode` | `plain` | `regex` | `fuzzy` | `plain` | fff search mode |
+| `mode` | `plain` \| `regex` \| `fuzzy` | `plain` | fff search mode |
 | `page_size` | integer >= 1 | `100` | Maximum matches returned by fff |
 | `max_matches_per_file` | integer >= 0 | `20` | Per-file match cap |
 | `time_budget_ms` | integer >= 0 | `80` | fff wall-clock budget; `0` means unlimited |
 | `enforce_time_budget` | boolean | `true` | Apply the budget even with zero matches |
-| `casing` | `smart` | `sensitive` | `insensitive` | `smart` | Search casing |
+| `casing` | `smart` \| `sensitive` \| `insensitive` | `smart` | Search casing |
 | `debounce_ms` | integer >= 0 | `30` | Keystroke debounce |
 | `context_size` | integer >= 0 | `4` | Lines of context around a match in the documentation window |
 | `fallback_to_regex_highlighting` | boolean | `true` | Use Vim syntax when no tree-sitter parser exists |
