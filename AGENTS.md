@@ -93,3 +93,8 @@ doc/blink-fff.txt               vimdoc (generated or written at the end)
 Implemented: source, fff searcher, token expansion, item mapping, documentation
 window, health check, debug logging, specs, headless smoke and bench scripts.
 See `PLAN.md` for the phase results and measured numbers.
+
+<!-- entire-agent:begin -->
+Read .entire/agent-guide.md for this repository's workflow, source inspection, and verification guidance.
+@.entire/agent-guide.md
+<!-- entire-agent:end -->
