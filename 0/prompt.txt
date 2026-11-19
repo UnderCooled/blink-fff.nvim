@@ -1,0 +1,45 @@
+pr卡住了
+
+---
+
+你用正常方式再试一次，没准github那边刚才有问题
+
+---
+
+entire review 的结果可以用 entire.exe 获取到，昨天rowme_android 会话里有成功经历你可以查看看
+
+---
+
+entire那边好像还没启用，等等
+
+---
+
+好像必须先往main提交 entire 加进来的这些，把刚才pr先撤了
+
+---
+
+已加环境变量
+
+---
+
+已经自动合并了？那就没法测他code review是不是正常了
+
+---
+
+我刷新了一下，有的，就是entire自动合并的
+
+---
+
+github上还提示有个 entire/checkpoints/v1 是怎么回事？
+
+---
+
+那 github 提示我要不要合并来着
+
+---
+
+奇怪 rowme_android 那边就没这个提示啊
+
+---
+
+改吧
