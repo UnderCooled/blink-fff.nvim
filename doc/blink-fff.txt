@@ -22,7 +22,7 @@ The documentation window shows the match location, surrounding source lines,
 syntax highlighting, and highlights of the matched token.
 
 ==============================================================================
-2. SETUP                                                *blink-fff-setup>
+2. SETUP                                                *blink-fff-setup*
 
 Requirements: Neovim 0.10+, blink.cmp, fff.nvim with its compiled library.
 
